@@ -1,0 +1,47 @@
+[14:25:31] [INFO] 
+[14:25:31] [INFO] ======================================================================
+[14:25:31] [INFO]   STELLA ALPHA TRAINING PIPELINE
+[14:25:31] [INFO] ======================================================================
+[14:25:31] [INFO] Config       : config\pure_ml_stella_alpha_settings.yaml
+[14:25:31] [INFO] H4 input     : data\EURUSD_H4_features.csv
+[14:25:31] [INFO] D1 input     : data\EURUSD_D1_features.csv
+[14:25:31] [INFO] Artifacts dir: artifacts
+[14:25:31] [INFO] 
+[14:25:31] [INFO] --- STEP 1: Loading Data ---
+[14:25:31] [INFO] Loading H4 data: data\EURUSD_H4_features.csv
+[14:25:32] [INFO]    Loaded 41,023 rows | timestamp … session
+[14:25:32] [INFO]    Date range: 2000-01-14 00:00:00 → 2025-12-31 00:00:00
+[14:25:32] [INFO] Loading D1 data: data\EURUSD_D1_features.csv
+[14:25:32] [INFO]    Loaded 7,314 rows | timestamp … session
+[14:25:32] [INFO]    Date range: 2000-02-16 00:00:00 → 2025-12-31 00:00:00
+[14:25:32] [INFO] 
+[14:25:32] [INFO] --- STEP 2: Feature Engineering ---
+[14:25:32] [INFO]    Merging D1 data (leakage-safe, previous day)…
+[14:25:32] [INFO]    Leakage validation: ✅ PASSED
+[14:25:32] [INFO]    After merge: 40,874 rows, 58 columns
+[14:25:32] [INFO]    Running feature engineering (H4 + D1 + MTF)…
+[14:25:32] [INFO]    After engineering: 39,825 rows, 214 columns
+[14:25:32] [INFO]    Feature columns: 200
+[14:25:32] [INFO]    H4=132  D1=57  MTF=11
+[14:25:32] [INFO] 
+[14:25:32] [INFO] --- STEP 3: Pre-computing Labels ---
+[14:25:32] [INFO]    Label configurations: 66
+[14:25:32] [INFO]    Imbalance (first cfg): 1.8:1 | Win rate: 36.2%
+[14:25:32] [INFO] 
+[14:25:32] [INFO] --- STEP 4: Walk-Forward Splits ---
+[14:25:32] [INFO]    5 walk-forward folds defined
+[14:25:32] [INFO]       Fold 1: Train=6,637  Thresh=3,319
+[14:25:32] [INFO]       Fold 2: Train=13,274  Thresh=3,319
+[14:25:32] [INFO]       Fold 3: Train=19,911  Thresh=3,319
+[14:25:32] [INFO]       Fold 4: Train=26,548  Thresh=3,319
+[14:25:32] [INFO]       Fold 5: Train=33,185  Thresh=3,319
+[14:25:32] [INFO] 
+[14:25:32] [INFO] --- STEP 5: Configuration Space ---
+[14:25:32] [INFO]    Total configs to test: 66
+[14:25:32] [INFO] 
+[14:25:32] [INFO] --- STEP 6: Running Experiments ---
+[21:58:35] [INFO]    Passed: 0/0
+[21:58:35] [INFO] 
+[21:58:35] [INFO] --- STEP 7: Best Configuration ---
+[21:58:35] [INFO]    ❌ No configs passed acceptance criteria.
+[21:58:35] [INFO]    Relax criteria or check data quality.

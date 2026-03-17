@@ -1,0 +1,313 @@
+# =============================================================================
+# STELLA ALPHA: MULTI-TIMEFRAME PURE ML PIPELINE
+# =============================================================================
+# This extends V4 Pure ML with:
+# 1. D1 (Daily) data integration for higher timeframe context
+# 2. Loss Analysis System to understand why trades fail
+# 3. Filter Recommendations to avoid losing trades
+# 4. High R:R configs (Runners) with TP > SL
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# DATA SOURCES
+# -----------------------------------------------------------------------------
+data:
+  h4_file: "data/EURUSD_H4_features.csv"
+  d1_file: "data/EURUSD_D1_features.csv"
+  timezone: "UTC"
+
+# -----------------------------------------------------------------------------
+# DATA SCHEMA
+# -----------------------------------------------------------------------------
+schema:
+  timestamp_column: "timestamp"
+  timestamp_format: "%Y.%m.%d %H:%M:%S"
+  ohlcv_columns:
+    - "open"
+    - "high"
+    - "low"
+    - "close"
+    - "volume"
+  pip_value: 0.0001
+
+# -----------------------------------------------------------------------------
+# MULTI-TIMEFRAME SETTINGS (NEW)
+# -----------------------------------------------------------------------------
+multi_timeframe:
+  enabled: true
+  d1_lookback_shift: 1    # Use previous day's D1 data (no leakage)
+  compute_d1_derived: true
+  compute_cross_tf: true
+  validate_no_leakage: true
+
+# -----------------------------------------------------------------------------
+# FEATURE CONFIGURATION
+# -----------------------------------------------------------------------------
+features:
+  # Columns to EXCLUDE from features
+  exclude_columns:
+    - "timestamp"
+    - "open"
+    - "high"
+    - "low"
+    - "close"
+    - "volume"
+    - "d1_timestamp"
+    - "d1_open"
+    - "d1_high"
+    - "d1_low"
+    - "d1_close"
+    - "d1_volume"
+    - "pair"
+    - "symbol"
+    - "label"
+    - "label_reason"
+    - "regime"
+  
+  # Feature engineering flags
+  compute_h4_derived: true
+  compute_d1_derived: true
+  compute_cross_tf: true
+
+# -----------------------------------------------------------------------------
+# CONFIGURATION SPACE (STELLA ALPHA - High R:R Focus)
+# -----------------------------------------------------------------------------
+# KEY CHANGE: Fixed SL=30, TP range 50-150
+# This guarantees minimum R:R of 1.67:1 for ALL configs
+# -----------------------------------------------------------------------------
+config_space:
+  # Take Profit in pips - expanded range for Runners
+  tp_pips:
+    min: 50
+    max: 150
+    step: 10
+    # Values: 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150 (11 values)
+  
+  # Stop Loss in pips - FIXED at 30
+  # This ensures favorable R:R for all configs
+  sl_pips: 30
+  
+  # Maximum holding period in bars - expanded for larger moves
+  max_holding_bars:
+    min: 12
+    max: 72
+    step: 12
+    # Values: 12, 24, 36, 48, 60, 72 (6 values)
+
+# Total configs: 11 × 1 × 6 = 66 configs
+# All configs have R:R >= 1.67:1
+
+# -----------------------------------------------------------------------------
+# WALK-FORWARD VALIDATION
+# -----------------------------------------------------------------------------
+walk_forward:
+  n_folds: 5
+  train_ratio: 0.60
+  calibration_ratio: 0.20
+  threshold_ratio: 0.20
+  expanding_window: true
+  test_years: 2
+
+# -----------------------------------------------------------------------------
+# STATISTICAL PRE-FILTER (NEW)
+# -----------------------------------------------------------------------------
+statistical_prefilter:
+  enabled: true
+  p_threshold: 0.05           # Features must have p < 0.05
+  min_effect_size: 0.2        # Cohen's d minimum
+  run_inside_fold: true       # CRITICAL: Run inside each fold to avoid leakage
+
+# -----------------------------------------------------------------------------
+# FEATURE SELECTION (RFE)
+# -----------------------------------------------------------------------------
+rfe:
+  enabled: true
+  min_features: 10
+  max_features: 25
+  step: 1
+  cv_folds: 3
+  scoring: "average_precision"
+  consensus_threshold: 0.6
+
+# -----------------------------------------------------------------------------
+# MODEL CONFIGURATION
+# -----------------------------------------------------------------------------
+model:
+  type: "lightgbm"
+  params:
+    n_estimators: 200
+    max_depth: 6
+    learning_rate: 0.05
+    num_leaves: 31
+    min_child_samples: 50
+    subsample: 0.8
+    colsample_bytree: 0.8
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    class_weight: "balanced"
+    random_state: 42
+    n_jobs: -1
+    verbose: -1
+    force_col_wise: true
+
+# -----------------------------------------------------------------------------
+# HYPERPARAMETER TUNING
+# -----------------------------------------------------------------------------
+hyperparameter_tuning:
+  enabled: true
+  method: "randomized"
+  n_iter: 30
+  cv_folds: 3
+  scoring: "average_precision"
+  
+  param_grid:
+    n_estimators: [100, 200, 300]
+    max_depth: [3, 4, 5, 6]
+    learning_rate: [0.05, 0.1]
+    num_leaves: [15, 31]
+    min_child_samples: [20, 50]
+
+# -----------------------------------------------------------------------------
+# PROBABILITY CALIBRATION
+# -----------------------------------------------------------------------------
+calibration:
+  enabled: true
+  method: "sigmoid"
+
+# -----------------------------------------------------------------------------
+# THRESHOLD OPTIMIZATION
+# -----------------------------------------------------------------------------
+threshold:
+  values: [0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70]
+  min_trades_per_threshold: 30
+  optimize_for: "ev"
+
+# -----------------------------------------------------------------------------
+# ACCEPTANCE CRITERIA (Adjusted for High R:R)
+# -----------------------------------------------------------------------------
+acceptance_criteria:
+  # Use edge above breakeven instead of absolute precision
+  min_edge_above_breakeven: 0.05   # Must be 5%+ above breakeven
+  min_expected_value: 0.0          # Positive EV required
+  max_precision_cv: 0.20           # Coefficient of variation < 20%
+  min_total_trades: 100            # Minimum trade volume
+
+# -----------------------------------------------------------------------------
+# TIER CLASSIFICATION (NEW)
+# -----------------------------------------------------------------------------
+tier_classification:
+  tier_0_min_rr: 2.5    # R:R >= 2.5:1 for Runner status
+  tier_1_min_rr: 1.67   # R:R >= 1.67:1 for Ideal status
+
+# -----------------------------------------------------------------------------
+# GOLD/SILVER/BRONZE CLASSIFICATION (Adjusted for High R:R)
+# -----------------------------------------------------------------------------
+classification:
+  gold:
+    min_edge: 0.10            # 10%+ above breakeven
+    max_precision_cv: 0.12    # Very stable
+    min_trades: 500
+    min_ev: 8.0
+  silver:
+    min_edge: 0.05            # 5%+ above breakeven
+    max_precision_cv: 0.18
+    min_ev: 3.0
+  bronze:
+    min_edge: 0.0             # At least breakeven
+    min_ev: 0.0
+
+# -----------------------------------------------------------------------------
+# LOSS ANALYSIS SETTINGS (NEW)
+# -----------------------------------------------------------------------------
+loss_analysis:
+  enabled: true
+  record_all_trades: true
+  trades_db: "artifacts/trades_stella_alpha.db"
+  
+  # Features to record for each trade
+  features_to_record:
+    h4:
+      - "rsi_value"
+      - "bb_position"
+      - "trend_strength"
+      - "atr_pct"
+      - "volume_ratio"
+      - "hour"
+      - "day_of_week"
+      - "is_asian_session"
+      - "is_london_session"
+      - "is_ny_session"
+      - "is_overlap_session"
+      - "consecutive_bullish"
+      - "exhaustion_score"
+      - "macd_histogram"
+      - "adx"
+    d1:
+      - "rsi_value"
+      - "bb_position"
+      - "trend_strength"
+      - "trend_direction"
+      - "is_trending_up"
+      - "is_trending_down"
+      - "atr_percentile"
+      - "consecutive_bullish"
+    mtf:
+      - "confluence_score"
+      - "rsi_aligned"
+      - "bb_aligned"
+      - "trend_aligned"
+      - "d1_supports_short"
+      - "d1_opposes_short"
+  
+  # Analysis settings
+  min_trades_for_analysis: 500
+  significance_level: 0.05
+
+# -----------------------------------------------------------------------------
+# FILTER RECOMMENDATIONS (NEW)
+# -----------------------------------------------------------------------------
+filter_recommendations:
+  enabled: true
+  output_file: "artifacts/filter_recommendations.json"
+  top_n_filters: 20
+  test_combinations: true
+  max_combination_size: 3
+
+# -----------------------------------------------------------------------------
+# REGIME TAGGING (for diagnostics)
+# -----------------------------------------------------------------------------
+regime:
+  adx_period: 14
+  atr_period: 14
+  atr_percentile_window: 100
+  trending_adx_threshold: 25
+  volatile_atr_percentile: 70
+
+# -----------------------------------------------------------------------------
+# EXECUTION SETTINGS
+# -----------------------------------------------------------------------------
+execution:
+  n_workers: 4
+  checkpoint_db: "artifacts/pure_ml_stella_alpha.db"
+  random_state: 42
+
+# -----------------------------------------------------------------------------
+# LOGGING
+# -----------------------------------------------------------------------------
+logging:
+  level: "INFO"
+  log_to_file: true
+  log_file: "artifacts/training_stella_alpha.log"
+  progress_interval: 10
+
+# -----------------------------------------------------------------------------
+# OUTPUT PATHS
+# -----------------------------------------------------------------------------
+output:
+  artifacts_dir: "artifacts"
+  models_dir: "artifacts/models"
+  model_file: "pure_ml_stella_alpha_model.pkl"
+  features_file: "features_stella_alpha.json"
+  config_file: "trading_config_stella_alpha.json"
+  metrics_file: "metrics_stella_alpha.json"
+  loss_analysis_file: "loss_analysis_stella_alpha.json"

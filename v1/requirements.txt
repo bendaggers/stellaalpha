@@ -1,0 +1,34 @@
+# Stella Alpha: Multi-Timeframe Pure ML Pipeline
+# Requirements
+
+# Core Data Science
+pandas>=2.0.0
+numpy>=1.24.0
+scipy>=1.10.0
+
+# Machine Learning
+scikit-learn>=1.3.0
+lightgbm>=4.0.0
+
+# Acceleration (optional but recommended)
+numba>=0.57.0
+
+# Configuration
+pyyaml>=6.0
+
+# Model Persistence
+joblib>=1.3.0
+
+# CLI & Display
+colorama>=0.4.6
+tqdm>=4.65.0
+
+# Database
+# sqlite3 is built into Python
+
+# Statistics
+statsmodels>=0.14.0
+
+# Plotting (optional, for diagnostics)
+matplotlib>=3.7.0
+seaborn>=0.12.0

@@ -1,0 +1,19 @@
+{
+  "model_version": "stella_alpha_v3",
+  "export_date": "2026-03-17T08:18:28.176471",
+  "tp_pips": 100,
+  "sl_pips": 50,
+  "max_hold_bars": 72,
+  "ml_threshold": 0.45,
+  "n_features": 25,
+  "signal_type": "MTF_TREND_LONG",
+  "timeframe": "H4",
+  "pair": "EURUSD",
+  "backtest_stats": {
+    "total_signals": 9936,
+    "trades_at_threshold": 3422,
+    "win_rate": 0.8962594973699591,
+    "annual_pips_expected": 1179,
+    "trades_per_year": 154
+  }
+}

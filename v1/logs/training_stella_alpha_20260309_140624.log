@@ -1,0 +1,39 @@
+[14:06:24] [INFO] 
+[14:06:24] [INFO] ======================================================================
+[14:06:24] [INFO]   STELLA ALPHA TRAINING PIPELINE
+[14:06:24] [INFO] ======================================================================
+[14:06:24] [INFO] Config       : config\pure_ml_stella_alpha_settings.yaml
+[14:06:24] [INFO] H4 input     : data\EURUSD_H4_features.csv
+[14:06:24] [INFO] D1 input     : data\EURUSD_D1_features.csv
+[14:06:24] [INFO] Artifacts dir: artifacts
+[14:06:24] [INFO] 
+[14:06:24] [INFO] --- STEP 1: Loading Data ---
+[14:06:24] [INFO] Loading H4 data: data\EURUSD_H4_features.csv
+[14:06:25] [INFO]    Loaded 41,023 rows | timestamp … session
+[14:06:25] [INFO]    Date range: 2000-01-14 00:00:00 → 2025-12-31 00:00:00
+[14:06:25] [INFO] Loading D1 data: data\EURUSD_D1_features.csv
+[14:06:25] [INFO]    Loaded 7,314 rows | timestamp … session
+[14:06:25] [INFO]    Date range: 2000-02-16 00:00:00 → 2025-12-31 00:00:00
+[14:06:25] [INFO] 
+[14:06:25] [INFO] --- STEP 2: Feature Engineering ---
+[14:06:25] [INFO]    Running feature engineering (H4 + D1 + MTF)…
+[14:06:25] [INFO]    After engineering: 40,974 rows, 133 columns
+[14:06:25] [INFO]    Feature columns: 126
+[14:06:25] [INFO]    H4=126  D1=0  MTF=0
+[14:06:25] [INFO] 
+[14:06:25] [INFO] --- STEP 3: Pre-computing Labels ---
+[14:06:25] [INFO]    Label configurations: 66
+[14:06:26] [INFO]    Imbalance (first cfg): 1.8:1 | Win rate: 36.0%
+[14:06:26] [INFO] 
+[14:06:26] [INFO] --- STEP 4: Walk-Forward Splits ---
+[14:06:26] [INFO]    5 walk-forward folds defined
+[14:06:26] [INFO]       Fold 1: Train=6,829  Thresh=3,415
+[14:06:26] [INFO]       Fold 2: Train=13,658  Thresh=3,415
+[14:06:26] [INFO]       Fold 3: Train=20,487  Thresh=3,415
+[14:06:26] [INFO]       Fold 4: Train=27,316  Thresh=3,415
+[14:06:26] [INFO]       Fold 5: Train=34,145  Thresh=3,414
+[14:06:26] [INFO] 
+[14:06:26] [INFO] --- STEP 5: Configuration Space ---
+[14:06:26] [INFO]    Total configs to test: 66
+[14:06:26] [INFO] 
+[14:06:26] [INFO] --- STEP 6: Running Experiments ---

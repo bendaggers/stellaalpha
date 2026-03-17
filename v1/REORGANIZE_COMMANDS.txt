@@ -1,0 +1,122 @@
+# STELLA ALPHA - MANUAL REORGANIZATION COMMANDS
+# ==============================================
+#
+# Run these commands in your stellaalpha directory to complete the reorganization.
+# Your structure is ALMOST correct. Just a few tweaks needed.
+#
+# Current directory: C:\Users\Ben Michael Oracion\AppData\Roaming\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075\MQL5\Experts\Advisors\Solara\Model Training\stellaalpha
+#
+
+## STEP 1: Open Command Prompt in stellaalpha folder
+## ------------------------------------------------
+## Right-click in the folder > "Open in Terminal" or "Open Command Window Here"
+
+
+## STEP 2: Create data folder (for your CSV files)
+## ------------------------------------------------
+mkdir data
+
+
+## STEP 3: Move test files to tests/ folder
+## ----------------------------------------
+move test_suite.py tests\test_suite.py
+move validate_leakage.py tests\validate_leakage.py
+
+
+## STEP 4: Move root __init__.py to src/ (if needed)
+## -------------------------------------------------
+## Only run this if __init__.py is still in root:
+move __init__.py src\__init__.py
+
+
+## STEP 5: Delete empty leftover files (if any)
+## --------------------------------------------
+## Check if v3-fast.db exists and delete it:
+del v3-fast.db
+
+
+## STEP 6: Verify structure
+## ------------------------
+tree /F /A
+
+
+# =============================================================================
+# EXPECTED FINAL STRUCTURE:
+# =============================================================================
+#
+# stellaalpha/
+# |
+# |-- run_pure_ml_stella_alpha.py      <- Main entry point (stays in root)
+# |-- diagnose.py                      <- CLI tool (stays in root)
+# |-- compare_versions.py              <- CLI tool (stays in root)
+# |-- analyze_losses.py                <- CLI tool (stays in root)
+# |-- recommend_filters.py             <- CLI tool (stays in root)
+# |-- requirements.txt
+# |-- README.md
+# |-- STELLA_ALPHA_SPECIFICATION.md
+# |
+# +-- config/
+# |   `-- pure_ml_stella_alpha_settings.yaml
+# |
+# +-- src/
+# |   |-- __init__.py                  <- Package init (DOWNLOAD NEW VERSION)
+# |   |-- checkpoint_db.py
+# |   |-- data_merger.py
+# |   |-- evaluation.py
+# |   |-- experiment.py
+# |   |-- feature_engineering.py
+# |   |-- features.py                  <- Already exists in your src/
+# |   |-- filter_recommendations.py
+# |   |-- loss_analysis.py
+# |   |-- pure_ml_labels.py
+# |   |-- statistical_validation.py
+# |   |-- tier_classification.py
+# |   |-- trade_recorder.py
+# |   `-- training.py
+# |
+# +-- tests/
+# |   |-- __init__.py                  <- DOWNLOAD NEW VERSION
+# |   |-- test_suite.py                <- Move from root
+# |   `-- validate_leakage.py          <- Move from root
+# |
+# +-- artifacts/                       <- Output files (auto-created)
+# |
+# `-- data/                            <- Your input CSV files
+#     |-- EURUSD_H4_features.csv
+#     `-- EURUSD_D1_features.csv
+#
+# =============================================================================
+
+
+# =============================================================================
+# ALL COMMANDS IN ONE BLOCK (copy-paste this):
+# =============================================================================
+
+mkdir data
+move test_suite.py tests\test_suite.py
+move validate_leakage.py tests\validate_leakage.py
+if exist __init__.py move __init__.py src\__init__.py
+if exist v3-fast.db del v3-fast.db
+echo Done! Run: tree /F /A
+
+
+# =============================================================================
+# AFTER REORGANIZATION:
+# =============================================================================
+#
+# 1. Download and save these files from Claude:
+#    - src/__init__.py (replace existing with new version)
+#    - tests/__init__.py (new file)
+#
+# 2. Put your data files in data/ folder:
+#    - data/EURUSD_H4_features.csv
+#    - data/EURUSD_D1_features.csv
+#
+# 3. Update config/pure_ml_stella_alpha_settings.yaml:
+#    Change paths to:
+#      h4_file: "data/EURUSD_H4_features.csv"
+#      d1_file: "data/EURUSD_D1_features.csv"
+#
+# 4. Test the setup:
+#    python run_pure_ml_stella_alpha.py --help
+#
